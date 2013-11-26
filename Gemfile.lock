@@ -1,0 +1,32 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    addressable (2.3.5)
+    crack (0.4.1)
+      safe_yaml (~> 0.9.0)
+    ethon (0.6.1)
+      ffi (>= 1.3.0)
+      mime-types (~> 1.18)
+    faraday (0.8.8)
+      multipart-post (~> 1.2.0)
+    ffi (1.9.3)
+    mime-types (1.25.1)
+    minitest (5.0.8)
+    multipart-post (1.2.0)
+    rake (10.1.0)
+    safe_yaml (0.9.7)
+    typhoeus (0.6.6)
+      ethon (~> 0.6.1)
+    webmock (1.15.0)
+      addressable (>= 2.2.7)
+      crack (>= 0.3.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  faraday
+  minitest
+  rake
+  typhoeus
+  webmock
