@@ -15,7 +15,9 @@ describe TwilioRecordings do
     ]
     
     @twilio_api_url = "https://api.twilio.com/2010-04-01/Accounts/ACeb4e7b38952d70a91bc4a4acea8dc9e0/Recordings/"
-    @tmp_dir = "./spec/tmp"
+    @tmp_dir = File.join('.','spec','tmp')
+
+    FileUtils.mkdir_p(@tmp_dir) # Create tmp dir if it doesn't exist
 
     @expected_filenames = @recording_sids.map { |sid| sid + ".mp3" }
     @expected_paths     = @expected_filenames.map { |filename| File.join(@tmp_dir, filename) }
@@ -23,10 +25,14 @@ describe TwilioRecordings do
 
     @stubbed_requests = @expected_urls.zip(@expected_filenames).map do |url, filename|
       stub_request(:get, url).
-        to_return(body: File.new("./spec/fixtures/recordings/#{filename}"), stats: 200)
+        to_return(body: File.new(File.join('.','spec','fixtures','recordings',filename)), stats: 200)
     end
 
     @twilio_recordings = TwilioRecordings.new(@account_sid, @recording_sids, tmp_dir: @tmp_dir)
+  end
+
+  after do
+    FileUtils.remove_dir(@tmp_dir)
   end
 
   describe "#filenames" do
@@ -58,7 +64,7 @@ describe TwilioRecordings do
     it "must save the contents of the URLs to file" do
       @twilio_recordings.download
       @expected_filenames.zip(@expected_paths).each do |filename, path|
-        assert FileUtils.compare_file("./spec/fixtures/recordings/#{filename}", path)
+        assert FileUtils.compare_file(File.join('.','spec','fixtures','recordings',filename), path)
       end
     end
   end
