@@ -1,3 +1,10 @@
+PATH
+  remote: .
+  specs:
+    twilio_recordings (0.0.1)
+      faraday (~> 0.8.0)
+      typhoeus (~> 0.6.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -13,11 +20,10 @@ GEM
     mime-types (1.25.1)
     minitest (5.0.8)
     multipart-post (1.2.0)
-    rake (10.1.0)
     safe_yaml (0.9.7)
     typhoeus (0.6.6)
       ethon (~> 0.6.1)
-    webmock (1.15.0)
+    webmock (1.16.0)
       addressable (>= 2.2.7)
       crack (>= 0.3.2)
 
@@ -25,8 +31,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  faraday
   minitest
-  rake
-  typhoeus
+  twilio_recordings!
   webmock
