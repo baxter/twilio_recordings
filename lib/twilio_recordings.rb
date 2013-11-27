@@ -44,8 +44,8 @@ class TwilioRecordings
     end
   end
 
-  def join
-    output_filename = File.join(@tmp_dir, "joined_#{@recording_sids.join('_')}.mp3")
-    `cat #{filenames.join(" ")} > #{output_filename}`
+  def join(output=nil)
+    output ||= File.join(@tmp_dir, "joined_#{@recording_sids.join('_')}.mp3")
+    `cat #{filenames.join(" ")} > #{output}`
   end
 end

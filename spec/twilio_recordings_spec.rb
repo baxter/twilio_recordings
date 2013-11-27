@@ -21,6 +21,11 @@ describe TwilioRecordings do
     @expected_paths     = @expected_filenames.map { |filename| File.join(@tmp_dir, filename) }
     @expected_urls      = @expected_filenames.map { |filename| @twilio_api_url + filename }
 
+    @stubbed_requests = @expected_urls.zip(@expected_filenames).map do |url, filename|
+      stub_request(:get, url).
+        to_return(body: File.new("./spec/fixtures/recordings/#{filename}"), stats: 200)
+    end
+
     @twilio_recordings = TwilioRecordings.new(@account_sid, @recording_sids, tmp_dir: @tmp_dir)
   end
 
@@ -43,17 +48,10 @@ describe TwilioRecordings do
   end
 
   describe "#download" do
-    before do
-      @stubs = @expected_urls.zip(@expected_filenames).map do |url, filename|
-        stub_request(:get, url).
-          to_return(body: File.new("./spec/fixtures/recordings/#{filename}"), stats: 200)
-      end
-    end
-
     it "must perform a GET on all of the URLs" do
       @twilio_recordings.download
-      @stubs.each do |stub|
-        assert_requested(stub)
+      @stubbed_requests.each do |request|
+        assert_requested(request)
       end
     end
 
@@ -62,6 +60,22 @@ describe TwilioRecordings do
       @expected_filenames.zip(@expected_paths).each do |filename, path|
         assert FileUtils.compare_file("./spec/fixtures/recordings/#{filename}", path)
       end
+    end
+  end
+
+  describe "#join" do
+    before do
+      @output_filename = File.join(@tmp_dir, 'output_file.mp3')
+      @twilio_recordings.download
+    end
+
+    it "must join the downloaded files into one file" do
+      @twilio_recordings.join(@output_filename)
+      # assert file size of 1 + 2 + 3 + 4 = output file
+      combined_size = @expected_paths.inject(0) do |sum,filename|
+        sum += File.size(filename)
+      end
+      combined_size.must_equal File.size(@output_filename)
     end
   end
 end
