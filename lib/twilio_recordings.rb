@@ -15,10 +15,10 @@ class TwilioRecordings
   #   account_sid: The Twilio account SID, e.g. "AC12345678901234567890123456789012"
   #   recording_sids: An array of recording SIDs, e.g. ["RE12345678901234567890123456789012"]
   #   tmp_dir: The directory that the recordings will be temporarily downloaded to. (optional, default is '/tmp')
-  def initialize(account_sid, recording_sids, tmp_dir: File.join('','tmp'))
+  def initialize(account_sid, recording_sids, options={})
     @account_sid = account_sid
     @recording_sids = recording_sids
-    @tmp_dir = tmp_dir
+    @tmp_dir = options[:tmp_dir] || File.join('','tmp')
     @recording_downloads = {}
   end
 

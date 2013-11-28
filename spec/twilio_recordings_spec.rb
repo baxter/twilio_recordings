@@ -25,10 +25,10 @@ describe TwilioRecordings do
 
     @stubbed_requests = @expected_urls.zip(@expected_filenames).map do |url, filename|
       stub_request(:get, url).
-        to_return(body: File.new(File.join('.','spec','fixtures','recordings',filename)), stats: 200)
+        to_return(:body => File.new(File.join('.','spec','fixtures','recordings',filename)), :stats => 200)
     end
 
-    @twilio_recordings = TwilioRecordings.new(@account_sid, @recording_sids, tmp_dir: @tmp_dir)
+    @twilio_recordings = TwilioRecordings.new(@account_sid, @recording_sids, :tmp_dir => @tmp_dir)
   end
 
   after do
