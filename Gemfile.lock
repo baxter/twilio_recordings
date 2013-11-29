@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    twilio_recordings (0.0.1)
-      faraday (~> 0.8.0)
-      typhoeus (~> 0.6.0)
+    twilio_recordings (0.0.5)
+      faraday
+      typhoeus (>= 0.5.0)
 
 GEM
   remote: https://rubygems.org/
@@ -20,6 +20,7 @@ GEM
     mime-types (1.25.1)
     minitest (5.0.8)
     multipart-post (1.2.0)
+    rake (10.1.0)
     safe_yaml (0.9.7)
     typhoeus (0.6.6)
       ethon (~> 0.6.1)
@@ -32,5 +33,6 @@ PLATFORMS
 
 DEPENDENCIES
   minitest
+  rake
   twilio_recordings!
   webmock
