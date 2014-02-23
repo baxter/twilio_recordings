@@ -97,4 +97,20 @@ describe TwilioRecordings do
       combined_size.must_equal File.size(@output_filename)
     end
   end
+
+  describe "#cleanup" do
+    before do
+      @output_filename = File.join(@tmp_dir, 'output_file.mp3')
+      @twilio_recordings.download
+      @result = @twilio_recordings.join(@output_filename)
+    end
+
+    it "must cleanup temp files" do
+      @twilio_recordings.cleanup
+      @expected_paths.each do |path|
+        File.exists?(path).must_equal false
+      end
+      File.exists?(@result).must_equal true
+    end
+  end
 end
