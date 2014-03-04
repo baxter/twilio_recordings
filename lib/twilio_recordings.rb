@@ -6,10 +6,10 @@ class TwilioRecordings
 
   ##
   # Instantiate a new TwilioRecordings object.
-  # 
+  #
   # Example:
   #   >> t = TwilioRecordings.new(account_sid, recording_sids, tmp_dir: './my_tmp_dir')
-  #   => #<TwilioRecordings:0x00... > 
+  #   => #<TwilioRecordings:0x00... >
   #
   # Arguments:
   #   account_sid: The Twilio account SID, e.g. "AC12345678901234567890123456789012"
@@ -17,7 +17,7 @@ class TwilioRecordings
   #   tmp_dir: The directory that the recordings will be temporarily downloaded to. (optional, default is '/tmp')
   def initialize(account_sid, recording_sids, options={})
     @account_sid = account_sid
-    @recording_sids = recording_sids
+    @recording_sids = recording_sids.map{ |sid| self.class.sanitize(sid) }
     @tmp_dir = options[:tmp_dir] || File.join('','tmp')
     @recording_downloads = {}
   end
@@ -44,7 +44,7 @@ class TwilioRecordings
 
   ##
   # Return the Faraday connection used to download the recordings.
-  # 
+  #
   # Will create a new connection if one has not already been set with connection=.
   #
   # Example:
@@ -88,7 +88,7 @@ class TwilioRecordings
   ##
   # Join the recordings together into a single file. Returns the output filename.
   #
-  # Example: 
+  # Example:
   #   >> t.join('~/my_file.mp3')
   #   => "~/my_file.mp3"
   #
@@ -98,5 +98,16 @@ class TwilioRecordings
     output ||= File.join(@tmp_dir, "joined_#{@recording_sids.join('_')}.mp3")
     `cat #{filenames.join(" ")} > #{output}`
     output
+  end
+
+  ##
+  # Sanitize the filename.
+  #
+  # Returns the sanitized filename.
+  #
+  # Example:
+  #   TwilioRecordings.sanitize('../etc/passwd') => 'etcpasswd'
+  def self.sanitize(filename)
+    filename.gsub(/[^a-zA-Z0-9]/, '')
   end
 end
