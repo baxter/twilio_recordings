@@ -13,7 +13,7 @@ describe TwilioRecordings do
       "REf7b24375cdbbbb42f58828f2fdf7b5a9",
       "RE23c45b6262e256a455b1ee296af53fbb"
     ]
-    
+
     @twilio_api_url = "https://api.twilio.com/2010-04-01/Accounts/ACeb4e7b38952d70a91bc4a4acea8dc9e0/Recordings/"
     @tmp_dir = File.join('.','spec','tmp')
 
@@ -35,9 +35,22 @@ describe TwilioRecordings do
     FileUtils.remove_dir(@tmp_dir)
   end
 
+  describe ".sanitize" do
+    it "must remove '..'" do
+      TwilioRecordings.sanitize('../etc/passwd').must_equal 'etcpasswd'
+    end
+  end
+
   describe "#filenames" do
     it "must return a list of all recording filenames" do
       @twilio_recordings.filenames.must_equal @expected_paths
+    end
+
+    it "must remove '..' from filenames" do
+      recording_sids = ['../etc/passwd']
+      expected_path = File.join(@tmp_dir, 'etcpasswd.mp3')
+      twilio_recordings = TwilioRecordings.new(@account_sid, recording_sids, :tmp_dir => @tmp_dir)
+      twilio_recordings.filenames.first.must_equal expected_path
     end
   end
 

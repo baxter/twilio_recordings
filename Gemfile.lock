@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    twilio_recordings (0.0.5)
+    twilio_recordings (0.0.6)
       faraday
       typhoeus (>= 0.5.0)
 
