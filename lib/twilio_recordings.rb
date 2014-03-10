@@ -59,6 +59,7 @@ class TwilioRecordings
   def download_and_join
     download
     join
+    cleanup
   end
 
   ##
@@ -109,5 +110,16 @@ class TwilioRecordings
   #   TwilioRecordings.sanitize('../etc/passwd') => 'etcpasswd'
   def self.sanitize(filename)
     filename.gsub(/[^a-zA-Z0-9]/, '')
+  end
+
+  # Clean up the temporary files needed to create the joined recording
+  #
+  # Example:
+  #   >> t.cleanup
+  #   => ['./my_tmp_dir/file1.mp3', './my_tmp_dir/file2.mp3', ...]
+  def cleanup
+    filenames.each do |filename|
+      File.delete(filename)
+    end
   end
 end
