@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'twilio_recordings'
-  s.version     = '0.0.7'
+  s.version     = '0.0.8'
   s.date        = '2013-11-27'
   s.summary     = "TwilioRecordings"
   s.description = "Utility for downloading and joining recordings from Twilio."
