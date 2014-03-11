@@ -19,7 +19,8 @@ class TwilioRecordings
     @account_sid = account_sid
     @recording_sids = recording_sids.map{ |sid| self.class.sanitize(sid) }
     @tmp_dir = options[:tmp_dir] || File.join('','tmp')
-    @recording_downloads = {}
+
+    @tmp_files = {}
   end
 
   ##
@@ -39,7 +40,8 @@ class TwilioRecordings
   #   >> t.twilio_urls
   #   => ["./my_tmp_dir/RE12345678901234567890123456789012.mp3"]
   def filenames
-    @recording_sids.map { |r| File.join(@tmp_dir, "#{r}.mp3") }
+    init_tmp_files
+    @recording_sids.map { |sid| @tmp_files[sid].path }
   end
 
   ##
@@ -56,11 +58,6 @@ class TwilioRecordings
     end
   end
 
-  def download_and_join
-    download
-    join
-  end
-
   ##
   # Download the recordings to @tmp_dir
   #
@@ -70,16 +67,20 @@ class TwilioRecordings
   #   >> t.download
   #   => #<TwilioRecordings:0x00... >
   def download
+    recording_downloads = {}
     # download the recordings
     connection.in_parallel do
-      twilio_urls.zip(filenames).each do |url, filename|
-        @recording_downloads[filename] = connection.get(url)
+      twilio_urls.zip(@recording_sids).each do |url, sid|
+        recording_downloads[sid] = connection.get(url)
       end
     end
 
+    init_tmp_files
+
     # write the recordings to file
-    @recording_downloads.each do |filename, response|
-      File.open(filename, 'wb') { |f| f.write(response.body) }
+    recording_downloads.each do |sid, response|
+      @tmp_files[sid].write(response.body)
+      @tmp_files[sid].close
     end
 
     self
@@ -95,9 +96,25 @@ class TwilioRecordings
   # Arguments:
   #   output: A string to the filename that the output should be written to. (optional, default is '/tmp/joined_{recording_ids}')
   def join(output=nil)
-    output ||= File.join(@tmp_dir, "joined_#{@recording_sids.join('_')}.mp3")
+    unless output
+      output_file = Tempfile.new(['joined_recording','.mp3'], @tmp_dir)
+      output_file.binmode
+      output_file.close
+      output = output_file.path
+    end
     `cat #{filenames.join(" ")} > #{output}`
+    cleanup
     output
+  end
+
+  ##
+  # Clean up the temporarily downloaded recordings.
+  #
+  # Example:
+  #   >> t.cleanup
+  #   => true
+  def cleanup
+    remove_tmp_files
   end
 
   ##
@@ -109,5 +126,23 @@ class TwilioRecordings
   #   TwilioRecordings.sanitize('../etc/passwd') => 'etcpasswd'
   def self.sanitize(filename)
     filename.gsub(/[^a-zA-Z0-9]/, '')
+  end
+
+  private
+
+  def init_tmp_files
+    return unless @tmp_files == {}
+    @recording_sids.each do |sid|
+      @tmp_files[sid] = Tempfile.new([sid,'.mp3'], @tmp_dir)
+      @tmp_files[sid].binmode
+    end
+  end
+
+  def remove_tmp_files
+    return if @tmp_files == {}
+    @tmp_files.values.each do |file|
+      file.unlink
+    end
+    @tmp_files = {}
   end
 end

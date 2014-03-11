@@ -19,13 +19,11 @@ describe TwilioRecordings do
 
     FileUtils.mkdir_p(@tmp_dir) # Create tmp dir if it doesn't exist
 
-    @expected_filenames = @recording_sids.map { |sid| sid + ".mp3" }
-    @expected_paths     = @expected_filenames.map { |filename| File.join(@tmp_dir, filename) }
-    @expected_urls      = @expected_filenames.map { |filename| @twilio_api_url + filename }
+    @stubbed_filenames = @recording_sids.map { |sid| sid + ".mp3" }
+    @expected_urls     = @stubbed_filenames.map { |filename| @twilio_api_url + filename }
 
-    @stubbed_requests = @expected_urls.zip(@expected_filenames).map do |url, filename|
-      stub_request(:get, url).
-        to_return(:body => File.new(File.join('.','spec','fixtures','recordings',filename)), :stats => 200)
+    @stubbed_requests = @expected_urls.zip(@stubbed_filenames).map do |url, filename|
+      stub_request(:get, url).to_return(:body => File.new(File.join('.','spec','fixtures','recordings',filename)), :stats => 200)
     end
 
     @twilio_recordings = TwilioRecordings.new(@account_sid, @recording_sids, :tmp_dir => @tmp_dir)
@@ -43,14 +41,17 @@ describe TwilioRecordings do
 
   describe "#filenames" do
     it "must return a list of all recording filenames" do
-      @twilio_recordings.filenames.must_equal @expected_paths
+      @recording_sids.zip(@twilio_recordings.filenames).each do |recording_sid, recording_filename|
+        recording_filename.must_include recording_sid
+        recording_filename.must_match /\.mp3$/
+      end
     end
 
     it "must remove '..' from filenames" do
       recording_sids = ['../etc/passwd']
-      expected_path = File.join(@tmp_dir, 'etcpasswd.mp3')
       twilio_recordings = TwilioRecordings.new(@account_sid, recording_sids, :tmp_dir => @tmp_dir)
-      twilio_recordings.filenames.first.must_equal expected_path
+      twilio_recordings.filenames.first.must_include "etcpasswd"
+      twilio_recordings.filenames.first.wont_include ".."
     end
   end
 
@@ -76,8 +77,8 @@ describe TwilioRecordings do
 
     it "must save the contents of the URLs to file" do
       @twilio_recordings.download
-      @expected_filenames.zip(@expected_paths).each do |filename, path|
-        assert FileUtils.compare_file(File.join('.','spec','fixtures','recordings',filename), path)
+      @stubbed_filenames.zip(@twilio_recordings.filenames).each do |original_filename, tmp_filename|
+        assert FileUtils.compare_file(File.join('.', 'spec', 'fixtures', 'recordings', original_filename), tmp_filename)
       end
     end
   end
@@ -91,10 +92,25 @@ describe TwilioRecordings do
     it "must join the downloaded files into one file" do
       @twilio_recordings.join(@output_filename)
       # assert file size of 1 + 2 + 3 + 4 = output file
-      combined_size = @expected_paths.inject(0) do |sum,filename|
-        sum += File.size(filename)
+      combined_size = @stubbed_filenames.inject(0) do |sum, filename|
+        sum += File.size(File.join('.', 'spec', 'fixtures', 'recordings', filename))
       end
       combined_size.must_equal File.size(@output_filename)
+    end
+  end
+
+  describe "#cleanup" do
+    before do
+      @output_filename = File.join(@tmp_dir, 'output_file.mp3')
+      @twilio_recordings.download
+      @tmp_filenames = @twilio_recordings.filenames
+    end
+
+    it "must delete the temp files when cleanup is called" do
+      @twilio_recordings.cleanup
+      @tmp_filenames.each do |tmp_filename|
+        refute File.exist?(tmp_filename)
+      end
     end
   end
 end
