@@ -69,7 +69,7 @@ class TwilioRecordings
   def download
     recording_downloads = {}
     # download the recordings
-    connection.in_parallel do
+    in_parallel do
       twilio_urls.zip(@recording_sids).each do |url, sid|
         recording_downloads[sid] = connection.get(url)
       end
@@ -84,6 +84,20 @@ class TwilioRecordings
     end
 
     self
+  end
+
+
+  ##
+  # Runs a block with parallel connection if there's several recordings
+  #
+  # Returns whatever the block returns
+  #
+  def in_parallel(&block)
+    if @recording_sids.count > 1
+      connection.in_parallel(&block)
+    else
+      block.call
+    end
   end
 
   ##
