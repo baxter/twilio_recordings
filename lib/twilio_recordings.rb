@@ -3,6 +3,7 @@ require 'typhoeus/adapters/faraday'
 
 class TwilioRecordings
   attr_writer :connection
+  attr_reader :tmp_dir 	# For testing
 
   ##
   # Instantiate a new TwilioRecordings object.
@@ -14,11 +15,11 @@ class TwilioRecordings
   # Arguments:
   #   account_sid: The Twilio account SID, e.g. "AC12345678901234567890123456789012"
   #   recording_sids: An array of recording SIDs, e.g. ["RE12345678901234567890123456789012"]
-  #   tmp_dir: The directory that the recordings will be temporarily downloaded to. (optional, default is '/tmp')
+  #   tmp_dir: The directory that the recordings will be temporarily downloaded to. (optional, default is Dir.tmpdir() )
   def initialize(account_sid, recording_sids, options={})
     @account_sid = account_sid
     @recording_sids = recording_sids.map{ |sid| self.class.sanitize(sid) }
-    @tmp_dir = options[:tmp_dir] || File.join('','tmp')
+    @tmp_dir = options[:tmp_dir] || Dir.tmpdir
 
     @tmp_files = {}
   end

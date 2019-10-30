@@ -18,6 +18,7 @@ describe TwilioRecordings do
     @tmp_dir = File.join('.','spec','tmp')
 
     FileUtils.mkdir_p(@tmp_dir) # Create tmp dir if it doesn't exist
+    FileUtils.chmod '+t', @tmp_dir # Need sticky bit for Dir.tmpdir
 
     @stubbed_filenames = @recording_sids.map { |sid| sid + ".mp3" }
     @expected_urls     = @stubbed_filenames.map { |filename| @twilio_api_url + filename }
@@ -36,6 +37,28 @@ describe TwilioRecordings do
   describe ".sanitize" do
     it "must remove '..'" do
       TwilioRecordings.sanitize('../etc/passwd').must_equal 'etcpasswd'
+    end
+  end
+
+  describe "#initialize" do
+    it "must use default /tmp directory" do
+      original_tmpdir = ENV['TMPDIR']
+      ENV['TMPDIR'] = nil
+
+      twilio_recordings = TwilioRecordings.new(@account_sid, [])
+      twilio_recordings.tmp_dir.must_equal '/tmp'
+
+      ENV['TMPDIR'] = original_tmpdir
+    end
+
+    it "must use selected TMPDIR directory" do
+      original_tmpdir = ENV['TMPDIR']
+      ENV['TMPDIR'] = @tmp_dir
+
+      twilio_recordings = TwilioRecordings.new(@account_sid, [])
+      twilio_recordings.tmp_dir.must_equal File.expand_path(@tmp_dir)
+
+      ENV['TMPDIR'] = original_tmpdir
     end
   end
 
